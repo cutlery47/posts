@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cutlery47/posts/internal/storage"
+	storage "github.com/cutlery47/posts/internal/storage/post-storage"
 	"github.com/google/uuid"
 )
 
@@ -70,6 +70,8 @@ func (ms *memStorage) InsertPost(ctx context.Context, in storage.InPost) (*stora
 	for _, ok := ms.posts[post.Id]; ok; _, ok = ms.posts[post.Id] {
 		post = toPost(in)
 	}
+
+	ms.posts[post.Id] = post
 
 	return &post, nil
 }

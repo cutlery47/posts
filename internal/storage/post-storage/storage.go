@@ -10,7 +10,7 @@ type Storage interface {
 	// retrieves a single post by provided id
 	GetPost(ctx context.Context, id uuid.UUID) (*Post, error)
 	// retrieves all posts
-	GetPosts(ctx context.Context) []Post
+	GetPosts(ctx context.Context) ([]Post, error)
 	// inserts a single post
 	InsertPost(ctx context.Context, in InPost) (*Post, error)
 	// deletes a single post by provided id

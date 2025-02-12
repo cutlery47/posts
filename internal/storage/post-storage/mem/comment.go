@@ -1,9 +1,10 @@
 package mem
 
 import (
+	"log"
 	"time"
 
-	"github.com/cutlery47/posts/internal/storage"
+	storage "github.com/cutlery47/posts/internal/storage/post-storage"
 	"github.com/google/uuid"
 )
 
@@ -20,6 +21,8 @@ func insertReply(c storage.Comment, in storage.InComment) (*storage.Comment, err
 	for _, ok := c.Replies[repl.Id]; ok; _, ok = c.Replies[repl.Id] {
 		repl = toComment(in)
 	}
+
+	c.Replies[repl.Id] = repl
 
 	return &repl, nil
 }
@@ -74,7 +77,7 @@ func updateReply(c storage.Comment, id uuid.UUID, in storage.InComment) (*storag
 		}
 
 		rr, err := updateReply(r, id, in)
-		if err != nil {
+		if err == nil {
 			repl = rr
 			break
 		}
@@ -88,6 +91,9 @@ func updateReply(c storage.Comment, id uuid.UUID, in storage.InComment) (*storag
 }
 
 func deleteReply(c storage.Comment, id uuid.UUID) error {
+	log.Println("===")
+	log.Println(c)
+
 	if len(c.Replies) == 0 {
 		return storage.ErrCommNotFound
 	}

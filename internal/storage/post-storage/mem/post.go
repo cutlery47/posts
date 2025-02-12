@@ -3,7 +3,7 @@ package mem
 import (
 	"time"
 
-	"github.com/cutlery47/posts/internal/storage"
+	storage "github.com/cutlery47/posts/internal/storage/post-storage"
 	"github.com/google/uuid"
 )
 
@@ -24,6 +24,8 @@ func insertComment(p storage.Post, in storage.InComment) (*storage.Comment, erro
 	for _, ok := p.Comments[comm.Id]; ok; _, ok = p.Comments[comm.Id] {
 		comm = toComment(in)
 	}
+
+	p.Comments[comm.Id] = comm
 
 	return &comm, nil
 }

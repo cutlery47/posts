@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/cutlery47/posts/internal/storage"
+	storage "github.com/cutlery47/posts/internal/storage/post-storage"
 	"github.com/google/uuid"
 )
 
