@@ -21,11 +21,11 @@ type Storage interface {
 	UpdatePost(ctx context.Context, id uuid.UUID, in InPost) (*Post, error)
 
 	// inserts a single comment for a post by provided id
-	InsertComment(ctx context.Context, postId, commentId *uuid.UUID, in InComment) (*Comment, error)
-	// deletes a single comment by provided id
-	DeleteComment(ctx context.Context, id uuid.UUID) error
-	// updates a single comment by provided id
-	UpdateComment(ctx context.Context, id uuid.UUID, in InComment) (*Comment, error)
+	InsertComment(ctx context.Context, postId uuid.UUID, parentId *uuid.UUID, in InComment) (*Comment, error)
+	// deletes a single comment for a post by provided id
+	DeleteComment(ctx context.Context, postId, commentId uuid.UUID) error
+	// updates a single comment for a post by provided id
+	UpdateComment(ctx context.Context, postId, commentId uuid.UUID, in InComment) (*Comment, error)
 }
 
 type memStorage struct {
@@ -66,9 +66,7 @@ func (ms *memStorage) GetPosts(ctx context.Context) ([]Post, error) {
 	ms.mu.RLock()
 	defer ms.mu.RUnlock()
 
-	var (
-		posts = make([]Post, 0, len(ms.posts))
-	)
+	posts := make([]Post, 0, len(ms.posts))
 
 	for _, v := range ms.posts {
 		posts = append(posts, v)
@@ -85,9 +83,7 @@ func (ms *memStorage) InsertPost(ctx context.Context, in InPost) (*Post, error) 
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 
-	var (
-		post = toPost(in)
-	)
+	post := toPost(in)
 
 	// loop until no collisions detected
 	for _, ok := ms.posts[post.id]; ok; _, ok = ms.posts[post.id] {
@@ -110,9 +106,7 @@ func (ms *memStorage) DeletePost(ctx context.Context, id uuid.UUID) error {
 		return ErrPostNotFound
 	}
 
-	var (
-		ts = time.Now()
-	)
+	ts := time.Now()
 
 	post.deletedAt = &ts
 	ms.posts[id] = post
@@ -142,12 +136,70 @@ func (ms *memStorage) UpdatePost(ctx context.Context, id uuid.UUID, in InPost) (
 	return &post, nil
 }
 
-// full tree traversal -- extremely slow
-func (ms *memStorage) slowSearch(commentId uuid.UUID) (*Comment, error) {
-	return nil, ErrNotImplemented
+func (ms *memStorage) InsertComment(ctx context.Context, postId uuid.UUID, parentId *uuid.UUID, in InComment) (*Comment, error) {
+	if err := ctxDone(ctx); err != nil {
+		return nil, err
+	}
+
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	post, ok := ms.posts[postId]
+	if !ok {
+		return nil, ErrPostNotFound
+	}
+
+	var (
+		comm Comment
+	)
+
+	// fast path
+	// entered if a given comment is on the first level of tree depth (O(1): single insertion)
+	if parentId == nil {
+		comm = post.insertComment(in)
+		return &comm, nil
+	}
+
+	// slow path
+	// entered if a given comment is somwhere down the tree (O(N): full dfs traversal + insertion)
+	parent, ok := post.getComment(*parentId)
+	if !ok {
+		return nil, ErrCommNotFound
+	}
+
+	comm = parent.insertReply(in)
+
+	return &comm, nil
 }
 
-// only comment tree traversal -- slightly less slow
-func (ms *memStorage) fastSearch(postId, commentId uuid.UUID) (*Comment, error) {
-	return nil, ErrNotImplemented
+func (ms *memStorage) UpdateComment(ctx context.Context, postId, commentId uuid.UUID, in InComment) (*Comment, error) {
+	if err := ctxDone(ctx); err != nil {
+		return nil, err
+	}
+
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	post, ok := ms.posts[postId]
+	if !ok {
+		return nil, ErrPostNotFound
+	}
+
+	return post.updateComment(commentId, in)
+}
+
+func (ms *memStorage) DeleteComment(ctx context.Context, postId, commentId uuid.UUID) error {
+	if err := ctxDone(ctx); err != nil {
+		return err
+	}
+
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	post, ok := ms.posts[postId]
+	if !ok {
+		return ErrPostNotFound
+	}
+
+	return post.deleteComment(commentId)
 }
