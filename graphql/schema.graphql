@@ -1,0 +1,23 @@
+type Query {
+    post(id: ID!): Post
+    posts(limit: Int!, offset: Int!, sort: PostSort!): [Post!]!
+}
+
+type Post {
+    id: ID!
+    text: String!
+    comments: [Comment!]!
+}
+
+type Comment {
+    id: ID!
+    text: String!
+    replies: [Comment!]!
+}
+
+enum PostSort {
+    NEWEST
+    OLDEST
+    UPVOTES
+    DOWNVOTES
+}
