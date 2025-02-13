@@ -2,25 +2,53 @@ package mem
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"os"
 	"sync"
 	"time"
 
+	"github.com/cutlery47/posts/config"
 	storage "github.com/cutlery47/posts/internal/storage/post-storage"
 	"github.com/google/uuid"
 )
 
 type memStorage struct {
 	mu *sync.RWMutex
-
 	// PostId -> Post
 	posts map[uuid.UUID]storage.Post
+
+	// restore src / dump dst
+	rfd, wfd *os.File
+
+	conf config.PostStorage
 }
 
-func NewMemStorage() *memStorage {
-	return &memStorage{
-		mu:    &sync.RWMutex{},
-		posts: make(map[uuid.UUID]storage.Post),
+func NewMemStorage(conf config.PostStorage, rfd, wfd *os.File, errChan chan<- error) (*memStorage, error) {
+	var (
+		ms = &memStorage{
+			mu:    &sync.RWMutex{},
+			posts: make(map[uuid.UUID]storage.Post),
+			conf:  conf,
+		}
+	)
+
+	if !conf.DumpEnabled {
+		return ms, nil
 	}
+
+	ms.wfd = wfd
+	ms.rfd = rfd
+
+	if err := ms.restore(); err != nil {
+		return nil, err
+	}
+
+	go ms.dump(errChan)
+
+	return ms, nil
 }
 
 func (ms *memStorage) GetPost(ctx context.Context, id uuid.UUID) (*storage.Post, error) {
@@ -190,4 +218,50 @@ func (ms *memStorage) DeleteComment(ctx context.Context, postId, commentId uuid.
 	}
 
 	return deleteComment(post, commentId)
+}
+
+// dump current state of the storage into given io.ReadWriter
+func (ms *memStorage) dump(errChan chan<- error) {
+	for {
+		time.Sleep(ms.conf.DumpInterval)
+
+		err := func() error {
+			ms.mu.Lock()
+			defer ms.mu.Unlock()
+
+			// clear prev contents
+			if err := ms.wfd.Truncate(0); err != nil {
+				return err
+			}
+
+			// move pointer to the beginning
+			if _, err := ms.wfd.Seek(0, 0); err != nil {
+				return err
+			}
+
+			// flush storage state
+			err := json.NewEncoder(ms.wfd).Encode(ms.posts)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}()
+
+		if err != nil {
+			errChan <- fmt.Errorf("%v: %v", ErrBadDump, err)
+			break
+		}
+	}
+
+}
+
+// restores last state of the storage from given io.ReadWriter
+func (ms *memStorage) restore() error {
+	err := json.NewDecoder(ms.rfd).Decode(&ms.posts)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return fmt.Errorf("%v: %v", ErrBadRestore, err)
+	}
+
+	return nil
 }

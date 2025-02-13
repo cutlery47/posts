@@ -75,7 +75,7 @@ func TestPostDeleteNotFound(t *testing.T) {
 
 	post = storage.Post{
 		Comments: map[uuid.UUID]storage.Comment{
-			id: storage.Comment{Id: id},
+			id: {Id: id},
 		},
 	}
 
@@ -90,7 +90,7 @@ func TestPostpdateNotFound(t *testing.T) {
 
 	post = storage.Post{
 		Comments: map[uuid.UUID]storage.Comment{
-			id: storage.Comment{Id: id},
+			id: {Id: id},
 		},
 	}
 

@@ -30,7 +30,7 @@ func TestCommentGetReply(t *testing.T) {
 
 	comm = storage.Comment{
 		Replies: map[uuid.UUID]storage.Comment{
-			id: storage.Comment{Id: id},
+			id: {Id: id},
 		},
 	}
 
@@ -46,10 +46,10 @@ func TestCommentNestedGetReply(t *testing.T) {
 
 	comm = storage.Comment{
 		Replies: map[uuid.UUID]storage.Comment{
-			id1: storage.Comment{
+			id1: {
 				Id: id1,
 				Replies: map[uuid.UUID]storage.Comment{
-					id2: storage.Comment{
+					id2: {
 						Id: id2,
 					},
 				},
@@ -69,10 +69,10 @@ func TestCommentNestedUpdateReply(t *testing.T) {
 
 	comm = storage.Comment{
 		Replies: map[uuid.UUID]storage.Comment{
-			id1: storage.Comment{
+			id1: {
 				Id: id1,
 				Replies: map[uuid.UUID]storage.Comment{
-					id2: storage.Comment{
+					id2: {
 						Id: id2,
 					},
 				},
@@ -92,10 +92,10 @@ func TestCommentNestedUpdateNonexistantReply(t *testing.T) {
 
 	comm = storage.Comment{
 		Replies: map[uuid.UUID]storage.Comment{
-			id1: storage.Comment{
+			id1: {
 				Id: id1,
 				Replies: map[uuid.UUID]storage.Comment{
-					id2: storage.Comment{
+					id2: {
 						Id: id2,
 					},
 				},
@@ -115,10 +115,10 @@ func TestCommentNestedDeleteReply(t *testing.T) {
 
 	comm = storage.Comment{
 		Replies: map[uuid.UUID]storage.Comment{
-			id1: storage.Comment{
+			id1: {
 				Id: id1,
 				Replies: map[uuid.UUID]storage.Comment{
-					id2: storage.Comment{
+					id2: {
 						Id:      id2,
 						Replies: map[uuid.UUID]storage.Comment{},
 					},
@@ -139,10 +139,10 @@ func TestCommentNestedDeleteNonexistantReply(t *testing.T) {
 
 	comm = storage.Comment{
 		Replies: map[uuid.UUID]storage.Comment{
-			id1: storage.Comment{
+			id1: {
 				Id: id1,
 				Replies: map[uuid.UUID]storage.Comment{
-					id2: storage.Comment{
+					id2: {
 						Id: id2,
 					},
 				},

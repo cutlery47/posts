@@ -1,7 +1,6 @@
 package mem
 
 import (
-	"log"
 	"time"
 
 	storage "github.com/cutlery47/posts/internal/storage/post-storage"
@@ -91,9 +90,6 @@ func updateReply(c storage.Comment, id uuid.UUID, in storage.InComment) (*storag
 }
 
 func deleteReply(c storage.Comment, id uuid.UUID) error {
-	log.Println("===")
-	log.Println(c)
-
 	if len(c.Replies) == 0 {
 		return storage.ErrCommNotFound
 	}
