@@ -35,10 +35,17 @@ func getComment(p storage.Post, id uuid.UUID) (*storage.Comment, bool) {
 		return nil, false
 	}
 
+	// fast path
+	c, ok := p.Comments[id]
+	if ok {
+		return &c, true
+	}
+
 	var (
 		comm *storage.Comment
 	)
 
+	// slow path
 	// iterate down the tree for each comment
 	for idx, c := range p.Comments {
 		if idx == id {
@@ -65,10 +72,20 @@ func updateComment(p storage.Post, id uuid.UUID, in storage.InComment) (*storage
 		return nil, storage.ErrCommNotFound
 	}
 
+	// fast path
+	c, ok := p.Comments[id]
+	if ok {
+		c.Content = in.Content
+		c.UpdatedAt = time.Now()
+		p.Comments[id] = c
+		return &c, nil
+	}
+
 	var (
 		comm *storage.Comment
 	)
 
+	// slow path
 	// iterate down the tree and update
 	for idx, c := range p.Comments {
 		if idx == id {
@@ -98,9 +115,19 @@ func deleteComment(p storage.Post, id uuid.UUID) error {
 		return storage.ErrCommNotFound
 	}
 
+	ts := time.Now()
+
+	// fast path
+	c, ok := p.Comments[id]
+	if ok {
+		c.DeletedAt = &ts
+		p.Comments[id] = c
+		return nil
+	}
+
+	// slow path
 	for idx, c := range p.Comments {
 		if idx == id {
-			ts := time.Now()
 			c.DeletedAt = &ts
 			p.Comments[idx] = c
 			return nil

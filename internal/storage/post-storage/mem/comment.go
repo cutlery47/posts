@@ -1,6 +1,7 @@
 package mem
 
 import (
+	"log"
 	"time"
 
 	storage "github.com/cutlery47/posts/internal/storage/post-storage"
@@ -31,11 +32,17 @@ func getReply(c storage.Comment, id uuid.UUID) (*storage.Comment, bool) {
 		return nil, false
 	}
 
+	// fast path
+	r, ok := c.Replies[id]
+	if ok {
+		return &r, true
+	}
+
 	var (
 		repl *storage.Comment
 	)
 
-	// iterate down the tree for each reply
+	// slow path
 	for idx, r := range c.Replies {
 		if idx == id {
 			repl = &r
@@ -61,11 +68,24 @@ func updateReply(c storage.Comment, id uuid.UUID, in storage.InComment) (*storag
 		return nil, storage.ErrCommNotFound
 	}
 
+	log.Println("===")
+	log.Println("id:", id)
+	log.Println("replies:", c.Replies)
+
+	// fast path
+	r, ok := c.Replies[id]
+	if ok {
+		r.Content = in.Content
+		r.UpdatedAt = time.Now()
+		c.Replies[id] = r
+		return &r, nil
+	}
+
 	var (
 		repl *storage.Comment
 	)
 
-	// iterate down the tree and update
+	// slow path
 	for idx, r := range c.Replies {
 		if idx == id {
 			r.Content = in.Content
@@ -94,6 +114,17 @@ func deleteReply(c storage.Comment, id uuid.UUID) error {
 		return storage.ErrCommNotFound
 	}
 
+	ts := time.Now()
+
+	// fast path
+	r, ok := c.Replies[id]
+	if ok {
+		r.DeletedAt = &ts
+		c.Replies[id] = r
+		return nil
+	}
+
+	// slow path
 	for idx, r := range c.Replies {
 		if idx == id {
 			ts := time.Now()

@@ -201,6 +201,7 @@ func init() {
 				OfType: commentType,
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				// convert reply map into slice
 				src := p.Source.(storage.Comment)
 
 				var (
@@ -222,6 +223,7 @@ func init() {
 				OfType: commentType,
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				// convert comment map into slice
 				src := p.Source.(storage.Post)
 
 				var (

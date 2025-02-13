@@ -3,7 +3,6 @@ package gql
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 
 	post "github.com/cutlery47/posts/internal/storage/post-storage"
@@ -24,8 +23,6 @@ func New(ps post.Storage, us user.Storage) (*gqlHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println(id1, id2, id3)
 
 	return &gqlHandler{
 		us:     us,

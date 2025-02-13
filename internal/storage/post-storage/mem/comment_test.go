@@ -2,6 +2,7 @@ package mem
 
 import (
 	"errors"
+	"log"
 	"testing"
 	"time"
 
@@ -102,6 +103,9 @@ func TestCommentNestedUpdateNonexistantReply(t *testing.T) {
 			},
 		},
 	}
+
+	log.Println("STARTED HERE ==========================")
+	log.Println("comm:", comm)
 
 	_, err := updateReply(comm, uuid.New(), storage.InComment{})
 	if !errors.Is(err, storage.ErrCommNotFound) {
