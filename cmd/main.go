@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/cutlery47/posts/config"
+	"github.com/cutlery47/posts/internal/app"
 )
 
 func main() {
@@ -12,4 +13,10 @@ func main() {
 		log.Fatalf("error when reading config: %v", err)
 	}
 
+	err = app.Run(*conf)
+	if err != nil {
+		log.Fatalf("runtime error: %v", err)
+	}
+
+	log.Println("service shut down gracefully")
 }
