@@ -14,22 +14,37 @@ var (
 	id1 = uuid.New()
 	id2 = uuid.New()
 	id3 = uuid.New()
+
+	commid1 = uuid.New()
+	commid2 = uuid.New()
+
+	replid1 = uuid.New()
 )
 
 var psts = map[uuid.UUID]storage.Post{
 	id1: {
-		Id:        id1,
-		InPost:    storage.InPost{Content: "123123"},
-		CreatedAt: ts, DeletedAt: &ts,
+		Id: id1,
+		Comments: map[uuid.UUID]storage.Comment{
+			commid1: {
+				Id: commid1,
+				Replies: map[uuid.UUID]storage.Comment{
+					replid1: {
+						Id: replid1,
+					},
+				},
+			},
+		},
 	},
 	id2: {
-		Id:        id2,
-		InPost:    storage.InPost{Content: "123321"},
-		CreatedAt: ts,
+		Id: id2,
+		Comments: map[uuid.UUID]storage.Comment{
+			commid2: {
+				Id: commid2,
+			},
+		},
 	},
 	id3: {
-		Id:     id3,
-		InPost: storage.InPost{Content: "xuyxuy"},
+		Id: id3,
 	},
 }
 
@@ -186,7 +201,17 @@ func init() {
 				OfType: commentType,
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				src := p.Source.(storage.Comment)
 
+				var (
+					repls = make([]storage.Comment, 0, len(src.Replies))
+				)
+
+				for _, v := range src.Replies {
+					repls = append(repls, v)
+				}
+
+				return repls, nil
 			},
 		})
 
@@ -197,7 +222,17 @@ func init() {
 				OfType: commentType,
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				src := p.Source.(storage.Post)
 
+				var (
+					comms = make([]storage.Comment, 0, len(src.Comments))
+				)
+
+				for _, v := range src.Comments {
+					comms = append(comms, v)
+				}
+
+				return comms, nil
 			},
 		},
 	)
