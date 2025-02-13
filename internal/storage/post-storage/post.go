@@ -19,7 +19,7 @@ type InPost struct {
 // output-bound Post
 // not concurrent-safe by itself!
 type Post struct {
-	InPost
+	InPost `json:"in_post"`
 
 	Id uuid.UUID `json:"id"`
 

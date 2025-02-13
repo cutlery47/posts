@@ -10,13 +10,13 @@ import (
 func main() {
 	conf, err := config.New(".env")
 	if err != nil {
-		log.Fatalf("error when reading config: %v", err)
+		log.Fatalf("[SETUP ERROR] error when reading config: %v", err)
 	}
 
 	err = app.Run(*conf)
 	if err != nil {
-		log.Fatalf("runtime error: %v", err)
+		log.Fatalf("[RUNTIME ERROR] error: %v", err)
 	}
 
-	log.Println("service shut down gracefully")
+	log.Println("[SHUTDOWN] service shut down gracefully")
 }

@@ -36,12 +36,12 @@ func New(conf config.HTTPServer, handler http.Handler) *Server {
 }
 
 func (s *Server) Run(errChan <-chan error) error {
-	log.Println("listening on:", s.server.Addr)
+	log.Println("[HTTPSERVER] listening on:", s.server.Addr)
 
 	go func() {
 		err := s.server.ListenAndServe()
 		if !errors.Is(err, http.ErrServerClosed) {
-			log.Println("http server error:", err)
+			log.Println("[HTTPSERVER] http server error:", err)
 		}
 	}()
 
@@ -58,7 +58,7 @@ func (s *Server) Run(errChan <-chan error) error {
 }
 
 func (s *Server) shutdown(e error) error {
-	log.Println("http server shutdown")
+	log.Println("[SHUTDOWN] http server shutdown")
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutDownTimeout)
 	defer cancel()

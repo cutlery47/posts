@@ -2,11 +2,12 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/cutlery47/posts/config"
 	v1 "github.com/cutlery47/posts/internal/handlers/http/v1"
-	"github.com/cutlery47/posts/internal/handlers/http/v1/graphql"
+	gql "github.com/cutlery47/posts/internal/handlers/http/v1/graphql"
 	post "github.com/cutlery47/posts/internal/storage/post-storage"
 	"github.com/cutlery47/posts/internal/storage/post-storage/mem"
 	pgpost "github.com/cutlery47/posts/internal/storage/post-storage/postgres"
@@ -19,19 +20,30 @@ import (
 func Run(conf config.App) error {
 	errChan := make(chan error, 1)
 
+	log.Println("[SETUP] setting up post storage...")
+
 	ps, err := getPostStorage(conf.PostStorage, errChan)
 	if err != nil {
-		return fmt.Errorf("getPostStorage: %v", err)
+		return fmt.Errorf("[SETUP ERROR] error when setting up post storage: %v", err)
 	}
+
+	log.Println("[SETUP] setting up user storage...")
 
 	us, err := getUserStorage(conf.UserStorage)
 	if err != nil {
-		return fmt.Errorf("getUserStorage: %v", err)
+		return fmt.Errorf("[SETUP ERROR] error when setting up user storage: %v", err)
 	}
 
-	gql := graphql.New(ps, us)
+	log.Println("[SETUP] setting up graphql handler...")
 
-	srv := httpserver.New(conf.HTTPServer, v1.New(gql))
+	h, err := gql.New(ps, us)
+	if err != nil {
+		return fmt.Errorf("[SETUP ERROR] error when seting up graphql handler: %v", err)
+	}
+
+	log.Println("[SETUP] setting up http server...")
+
+	srv := httpserver.New(conf.HTTPServer, v1.New(h))
 
 	return srv.Run(errChan)
 }
