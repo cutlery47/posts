@@ -26,7 +26,7 @@ type memStorage struct {
 	conf config.PostStorage
 }
 
-func NewMemStorage(conf config.PostStorage, rfd, wfd *os.File, errChan chan<- error) (*memStorage, error) {
+func NewStorage(conf config.PostStorage, rfd, wfd *os.File, errChan chan<- error) (*memStorage, error) {
 	var (
 		ms = &memStorage{
 			mu:    &sync.RWMutex{},

@@ -26,7 +26,7 @@ var (
 func TestStorageInsertPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	in := storage.InPost{
 		UserId:  uuid.New(),
@@ -43,7 +43,7 @@ func TestStorageInsertPost(t *testing.T) {
 func TestStorageGetPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	in := storage.InPost{
 		UserId:  uuid.New(),
@@ -69,7 +69,7 @@ func TestStorageGetPost(t *testing.T) {
 func TestStorageGetNonexistantPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	_, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -85,7 +85,7 @@ func TestStorageGetNonexistantPost(t *testing.T) {
 func TestStorageGetPosts(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	in1 := storage.InPost{
 		UserId:  uuid.New(),
@@ -126,7 +126,7 @@ func TestStorageGetPosts(t *testing.T) {
 func TestStorageDeletePost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -151,7 +151,7 @@ func TestStorageDeletePost(t *testing.T) {
 func TestStorageDeleteNonexistantPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	_, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -167,7 +167,7 @@ func TestStorageDeleteNonexistantPost(t *testing.T) {
 func TestStorageDeleteDeletedPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -188,7 +188,7 @@ func TestStorageDeleteDeletedPost(t *testing.T) {
 func TestStorageUpdatePost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	id := uuid.New()
 
@@ -222,7 +222,7 @@ func TestStorageUpdatePost(t *testing.T) {
 func TestStorageUpdateNonexistantPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	_, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -238,7 +238,7 @@ func TestStorageUpdateNonexistantPost(t *testing.T) {
 func TestStorageUpdateDeletedPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -259,7 +259,7 @@ func TestStorageUpdateDeletedPost(t *testing.T) {
 func TestStorageInsertComment(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	inPost := storage.InPost{
 		UserId:  uuid.New(),
@@ -299,7 +299,7 @@ func TestStorageInsertComment(t *testing.T) {
 func TestStorageInsertCommentIntoNonexistantPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	_, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -315,7 +315,7 @@ func TestStorageInsertCommentIntoNonexistantPost(t *testing.T) {
 func TestStorageInsertReply(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -345,7 +345,7 @@ func TestStorageInsertReply(t *testing.T) {
 func TestStorageInsertReplyIntoNonexistantComment(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -368,7 +368,7 @@ func TestStorageInsertReplyIntoNonexistantComment(t *testing.T) {
 func TestStorageDeleteComment(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -389,7 +389,7 @@ func TestStorageDeleteComment(t *testing.T) {
 func TestStorageDeleteReply(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -415,7 +415,7 @@ func TestStorageDeleteReply(t *testing.T) {
 func TestStorageDeleteCommentInNonexistantPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -436,7 +436,7 @@ func TestStorageDeleteCommentInNonexistantPost(t *testing.T) {
 func TestStorageUpdateComment(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -473,7 +473,7 @@ func TestStorageUpdateComment(t *testing.T) {
 func TestStorageUpdateCommentInNonexistantPost(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {
@@ -494,7 +494,7 @@ func TestStorageUpdateCommentInNonexistantPost(t *testing.T) {
 func TestStorageUpdateReply(t *testing.T) {
 	ctx := context.Background()
 
-	store, _ = mem.NewMemStorage(conf, nil, nil, nil)
+	store, _ = mem.NewStorage(conf, nil, nil, nil)
 
 	post, err := store.InsertPost(ctx, storage.InPost{})
 	if err != nil {

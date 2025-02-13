@@ -19,7 +19,7 @@ type mockStorage struct {
 	conf config.UserStorage
 }
 
-func NewMockStorage() *mockStorage {
+func NewStorage() *mockStorage {
 	return &mockStorage{
 		users:    make(map[uuid.UUID]storage.User),
 		sessions: make(map[uuid.UUID]storage.Session),
@@ -30,6 +30,10 @@ func NewMockStorage() *mockStorage {
 func (ms *mockStorage) Register(ctx context.Context, in storage.InUser) (*storage.User, error) {
 	if err := ctxDone(ctx); err != nil {
 		return nil, err
+	}
+
+	if in.Role != storage.AdminRole || in.Role != storage.UserRole {
+		return nil, storage.ErrRoleNotFound
 	}
 
 	ms.mu.Lock()

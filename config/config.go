@@ -27,6 +27,7 @@ type Storage struct {
 }
 
 type PostStorage struct {
+	Type            string        `env:"POST_STORAGE_TYPE" env-default:"mem"`
 	RestoreSource   string        `env:"RESTORE_SOURCE" env-default:"dump"`
 	DumpDestination string        `env:"DUMP_DESTINATION" env-default:"dump"`
 	DumpEnabled     bool          `env:"DUMP_ENABLED" env-default:"true"`
@@ -34,6 +35,7 @@ type PostStorage struct {
 }
 
 type UserStorage struct {
+	Type            string        `env:"USER_STORAGE_TYPE" env-default:"mock"`
 	SessionDuration time.Duration `env:"SESSION_DURATION" env-default:"24h"`
 }
 
