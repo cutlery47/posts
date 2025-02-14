@@ -19,7 +19,7 @@ func New(conf config.Handler, svc *service.Service) *chi.Mux {
 	mux.Group(func(r chi.Router) {
 		r.Get("/register", auth.handleRegister)
 		r.Get("/login", auth.handleLogin)
-		r.Get("/logout", auth.handleRegister)
+		r.Get("/logout", auth.handleLogout)
 	})
 
 	return mux

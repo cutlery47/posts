@@ -28,7 +28,7 @@ func New(conf config.Handler, svc *service.Service) (*chi.Mux, error) {
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		MaxAge:           300,
 	}))
 
 	mux.Route("/api/v1", func(r chi.Router) {

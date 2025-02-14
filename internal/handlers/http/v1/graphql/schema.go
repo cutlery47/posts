@@ -66,9 +66,9 @@ func (gh *gqlHandler) initSchema() error {
 	commentType.AddFieldConfig(
 		"replies",
 		&graphql.Field{
-			Type: &graphql.List{
+			Type: graphql.NewNonNull(&graphql.List{
 				OfType: commentType,
-			},
+			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				// convert reply map into slice
 				src := p.Source.(storage.Comment)
@@ -152,9 +152,9 @@ func (gh *gqlHandler) initSchema() error {
 	postType.AddFieldConfig(
 		"comments",
 		&graphql.Field{
-			Type: &graphql.List{
+			Type: graphql.NewNonNull(&graphql.List{
 				OfType: commentType,
-			},
+			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				// convert comment map into slice
 				src := p.Source.(storage.Post)
@@ -259,7 +259,7 @@ func (gh *gqlHandler) initSchema() error {
 					Resolve: gh.resolveMutationDeletePost,
 				},
 				"updatePost": &graphql.Field{
-					Type: graphql.NewNonNull(postType),
+					Type: postType,
 					Args: graphql.FieldConfigArgument{
 						"post_id": &graphql.ArgumentConfig{
 							Type: graphql.NewNonNull(graphql.ID),
@@ -310,7 +310,7 @@ func (gh *gqlHandler) initSchema() error {
 							Type: graphql.NewNonNull(graphql.ID),
 						},
 						"in_comm": &graphql.ArgumentConfig{
-							Type: inCommentInput,
+							Type: graphql.NewNonNull(inCommentInput),
 						},
 						"sesh_id": seshToken,
 					},

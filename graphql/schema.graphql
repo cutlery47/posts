@@ -1,23 +1,75 @@
-type Query {
-    post(id: ID!): Post
-    posts(limit: Int!, offset: Int!, sort: PostSort!): [Post!]!
+type Post {
+    in_post: InPost!
+    id: ID!
+    upvotes: Int!
+    downvotes: Int!
+    created_at: DateTime!
+    updated_at: DateTime!
+    deleted_at: DateTime
+    comments: [Comment]!
 }
 
-type Post {
-    id: ID!
-    text: String!
-    comments: [Comment!]!
+type InPost {
+    user_id: ID!
+    content: String!
+    is_mute: Boolean!
 }
 
 type Comment {
+    in_comment: InComment!
     id: ID!
-    text: String!
-    replies: [Comment!]!
+    upvotes: Int!
+    downvotes: Int!
+    created_at: DateTime!
+    updated_at: DateTime!
+    deleted_at: DateTime
+    replies: [Comment]!
 }
 
-enum PostSort {
+type InComment {
+    user_id: ID!
+    content: String!
+}
+
+input InPostInput {
+    user_id: ID!
+    content: String!
+    is_mute: Boolean!
+}
+
+input InCommentInput {
+    user_id: ID!
+    content: String!
+}
+
+enum SortEnum {
     NEWEST
     OLDEST
-    UPVOTES
-    DOWNVOTES
+    UPVOTED
+    DOWNVOTED
 }
+
+type Query {
+    post(id: ID!) Post
+    posts(limit: Int, offset: Int, sort_by: SortEnum!) [Post]!
+}
+
+type Mutation {
+    insertPost(in_post: InPostInput!, sesh_id: ID!) Post!
+    deletePost(id: ID!, sesh_id: ID!) ID
+    updatePost(post_id: ID!, in_post: InPostInput: InPostInput!, sesh_id: ID!) Post
+    insertComment(post_id: ID!, parent_id: ID, in_comment: InCommentInput!, sesh_id: ID!) Comment!
+    deleteComment(post_id: ID!, comm_id: ID!, sesh_id: ID!) ID
+    updateComment(post_id: ID!, comm_id: ID!, in_comm: InCommentInput!, sesh_id: ID!) Comment
+}
+
+
+
+
+
+
+
+
+
+
+

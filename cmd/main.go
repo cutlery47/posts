@@ -15,7 +15,7 @@ func main() {
 
 	err = app.Run(*conf)
 	if err != nil {
-		log.Fatalf("[RUNTIME ERROR] error: %v", err)
+		log.Fatalf("[APPLICATION ERROR] error: %v", err)
 	}
 
 	log.Println("[SHUTDOWN] service shut down gracefully")

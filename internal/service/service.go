@@ -5,6 +5,7 @@ import (
 	"errors"
 	"slices"
 
+	"github.com/cutlery47/posts/config"
 	post "github.com/cutlery47/posts/internal/storage/post-storage"
 	storage "github.com/cutlery47/posts/internal/storage/post-storage"
 	user "github.com/cutlery47/posts/internal/storage/user-storage"
@@ -21,12 +22,15 @@ var (
 type Service struct {
 	ps post.Storage
 	us user.Storage
+
+	conf config.Service
 }
 
-func New(ps post.Storage, us user.Storage) (*Service, error) {
+func New(conf config.Service, ps post.Storage, us user.Storage) (*Service, error) {
 	return &Service{
-		ps: ps,
-		us: us,
+		ps:   ps,
+		us:   us,
+		conf: conf,
 	}, nil
 }
 

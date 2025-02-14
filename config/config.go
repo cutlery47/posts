@@ -37,6 +37,17 @@ type PostStorage struct {
 type UserStorage struct {
 	Type            string        `env:"USER_STORAGE_TYPE" env-default:"mock"`
 	SessionDuration time.Duration `env:"SESSION_DURATION" env-default:"24h"`
+	Postgres
+}
+
+type Postgres struct {
+	User       string        `env:"POSTGRES_USER"`
+	Pass       string        `env:"POSTGRES_PASSWORD"`
+	Host       string        `env:"POSTGRES_HOST"`
+	Port       string        `env:"POSTGRES_PORT"`
+	DB         string        `env:"POSTGRES_DB"`
+	Timeout    time.Duration `env:"POSTGRES_TIMEOUT"`
+	Migrations string        `env:"POSTGRES_MIGRATIONS"`
 }
 
 type HTTPServer struct {

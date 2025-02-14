@@ -13,7 +13,7 @@ import (
 	pgpost "github.com/cutlery47/posts/internal/storage/post-storage/postgres"
 	user "github.com/cutlery47/posts/internal/storage/user-storage"
 	"github.com/cutlery47/posts/internal/storage/user-storage/mock"
-	pguser "github.com/cutlery47/posts/internal/storage/user-storage/postgres"
+	pg "github.com/cutlery47/posts/internal/storage/user-storage/postgres"
 	"github.com/cutlery47/posts/pkg/httpserver"
 )
 
@@ -36,7 +36,7 @@ func Run(conf config.App) error {
 
 	log.Println("[SETUP] setting up service...")
 
-	svc, err := service.New(ps, us)
+	svc, err := service.New(conf.Service, ps, us)
 	if err != nil {
 		return fmt.Errorf("[SETUP ERROR] error when setting up service: %v", err)
 	}
@@ -75,7 +75,11 @@ func getUserStorage(conf config.UserStorage) (user.Storage, error) {
 	case "mock":
 		return mock.NewStorage(), nil
 	case "pg":
-		return pguser.NewStorage()
+		pg, err := pg.NewStorage(conf)
+		if err != nil {
+			return nil, err
+		}
+		return pg, nil
 	default:
 		return nil, fmt.Errorf("user storage type undefined. supported types: \"pg\" (not impl), \"mock\"")
 	}
