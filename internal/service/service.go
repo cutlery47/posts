@@ -79,9 +79,15 @@ func (s *Service) InsertComment(ctx context.Context, postId uuid.UUID, parentId 
 }
 
 func (s *Service) DeleteComment(ctx context.Context, postId, commentId uuid.UUID) (*uuid.UUID, error) {
-	// vid
+	// vld
 
 	return s.ps.DeleteComment(ctx, postId, commentId)
+}
+
+func (s *Service) UpdateComment(ctx context.Context, postId, commentId uuid.UUID, in post.InComment) (*post.Comment, error) {
+	// vld
+
+	return s.ps.UpdateComment(ctx, postId, commentId, in)
 }
 
 func (s *Service) sortPosts(posts []post.Post, sortBy string) ([]post.Post, error) {

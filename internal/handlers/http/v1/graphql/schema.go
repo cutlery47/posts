@@ -385,6 +385,38 @@ func (gh *gqlHandler) initSchema() error {
 						return gh.svc.DeleteComment(p.Context, *postId, *commId)
 					},
 				},
+				"updateComment": &graphql.Field{
+					Type: commentType,
+					Args: graphql.FieldConfigArgument{
+						"post_id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.ID),
+						},
+						"comm_id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.ID),
+						},
+						"in_comm": &graphql.ArgumentConfig{
+							Type: inCommentInput,
+						},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						postId, err := idFromArg(p.Args["post_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						commId, err := idFromArg(p.Args["comm_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						comm, err := inCommentFromArg(p.Args["in_comm"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.UpdateComment(p.Context, *postId, *commId, *comm)
+					},
+				},
 			},
 		},
 	)
