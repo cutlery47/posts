@@ -104,9 +104,9 @@ func (ms *memStorage) InsertPost(ctx context.Context, in storage.InPost) (*stora
 	return &post, nil
 }
 
-func (ms *memStorage) DeletePost(ctx context.Context, id uuid.UUID) error {
+func (ms *memStorage) DeletePost(ctx context.Context, id uuid.UUID) (*uuid.UUID, error) {
 	if err := ctxDone(ctx); err != nil {
-		return err
+		return nil, err
 	}
 
 	ms.mu.Lock()
@@ -114,11 +114,11 @@ func (ms *memStorage) DeletePost(ctx context.Context, id uuid.UUID) error {
 
 	post, ok := ms.posts[id]
 	if !ok {
-		return storage.ErrPostNotFound
+		return nil, storage.ErrPostNotFound
 	}
 
 	if post.DeletedAt != nil {
-		return storage.ErrPostIsDeleted
+		return nil, storage.ErrPostIsDeleted
 	}
 
 	ts := time.Now()
@@ -126,7 +126,7 @@ func (ms *memStorage) DeletePost(ctx context.Context, id uuid.UUID) error {
 	post.DeletedAt = &ts
 	ms.posts[id] = post
 
-	return nil
+	return &id, nil
 }
 
 func (ms *memStorage) UpdatePost(ctx context.Context, id uuid.UUID, in storage.InPost) (*storage.Post, error) {
@@ -204,9 +204,9 @@ func (ms *memStorage) UpdateComment(ctx context.Context, postId, commentId uuid.
 	return updateComment(post, commentId, in)
 }
 
-func (ms *memStorage) DeleteComment(ctx context.Context, postId, commentId uuid.UUID) error {
+func (ms *memStorage) DeleteComment(ctx context.Context, postId, commentId uuid.UUID) (*uuid.UUID, error) {
 	if err := ctxDone(ctx); err != nil {
-		return err
+		return nil, err
 	}
 
 	ms.mu.Lock()
@@ -214,7 +214,7 @@ func (ms *memStorage) DeleteComment(ctx context.Context, postId, commentId uuid.
 
 	post, ok := ms.posts[postId]
 	if !ok {
-		return storage.ErrPostNotFound
+		return nil, storage.ErrPostNotFound
 	}
 
 	return deleteComment(post, commentId)

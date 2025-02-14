@@ -131,7 +131,7 @@ func TestCommentNestedDeleteReply(t *testing.T) {
 		},
 	}
 
-	err := deleteReply(comm, id2)
+	_, err := deleteReply(comm, id2)
 	if err != nil {
 		t.Fatal("error: ", err)
 	}
@@ -154,7 +154,7 @@ func TestCommentNestedDeleteNonexistantReply(t *testing.T) {
 		},
 	}
 
-	err := deleteReply(comm, uuid.New())
+	_, err := deleteReply(comm, uuid.New())
 	if !errors.Is(err, storage.ErrCommNotFound) {
 		t.Fatal("error: ", err)
 	}

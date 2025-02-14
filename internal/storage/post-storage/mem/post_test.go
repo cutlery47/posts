@@ -39,7 +39,7 @@ func TestPostDeleteEmptyComments(t *testing.T) {
 		Comments: make(map[uuid.UUID]storage.Comment),
 	}
 
-	err := deleteComment(post, uuid.New())
+	_, err := deleteComment(post, uuid.New())
 	if !errors.Is(err, storage.ErrCommNotFound) {
 		t.Fatalf("should be %v", storage.ErrCommNotFound)
 	}
@@ -79,7 +79,7 @@ func TestPostDeleteNotFound(t *testing.T) {
 		},
 	}
 
-	err := deleteComment(post, uuid.New())
+	_, err := deleteComment(post, uuid.New())
 	if !errors.Is(err, storage.ErrCommNotFound) {
 		t.Fatalf("error: %v", err)
 	}

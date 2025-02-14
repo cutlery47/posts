@@ -110,9 +110,9 @@ func updateComment(p storage.Post, id uuid.UUID, in storage.InComment) (*storage
 	return comm, nil
 }
 
-func deleteComment(p storage.Post, id uuid.UUID) error {
+func deleteComment(p storage.Post, id uuid.UUID) (*uuid.UUID, error) {
 	if len(p.Comments) == 0 {
-		return storage.ErrCommNotFound
+		return nil, storage.ErrCommNotFound
 	}
 
 	ts := time.Now()
@@ -122,7 +122,7 @@ func deleteComment(p storage.Post, id uuid.UUID) error {
 	if ok {
 		c.DeletedAt = &ts
 		p.Comments[id] = c
-		return nil
+		return &id, nil
 	}
 
 	// slow path
@@ -130,14 +130,14 @@ func deleteComment(p storage.Post, id uuid.UUID) error {
 		if idx == id {
 			c.DeletedAt = &ts
 			p.Comments[idx] = c
-			return nil
+			return &idx, nil
 		}
 
-		err := deleteReply(c, id)
+		found, err := deleteReply(c, id)
 		if err == nil {
-			return nil
+			return found, nil
 		}
 	}
 
-	return storage.ErrCommNotFound
+	return nil, storage.ErrCommNotFound
 }

@@ -109,9 +109,9 @@ func updateReply(c storage.Comment, id uuid.UUID, in storage.InComment) (*storag
 	return repl, nil
 }
 
-func deleteReply(c storage.Comment, id uuid.UUID) error {
+func deleteReply(c storage.Comment, id uuid.UUID) (*uuid.UUID, error) {
 	if len(c.Replies) == 0 {
-		return storage.ErrCommNotFound
+		return nil, storage.ErrCommNotFound
 	}
 
 	ts := time.Now()
@@ -121,7 +121,7 @@ func deleteReply(c storage.Comment, id uuid.UUID) error {
 	if ok {
 		r.DeletedAt = &ts
 		c.Replies[id] = r
-		return nil
+		return &id, nil
 	}
 
 	// slow path
@@ -130,14 +130,14 @@ func deleteReply(c storage.Comment, id uuid.UUID) error {
 			ts := time.Now()
 			r.DeletedAt = &ts
 			r.Replies[idx] = r
-			return nil
+			return &id, nil
 		}
 
-		err := deleteReply(r, id)
+		found, err := deleteReply(r, id)
 		if err == nil {
-			return nil
+			return found, nil
 		}
 	}
 
-	return storage.ErrCommNotFound
+	return nil, storage.ErrCommNotFound
 }

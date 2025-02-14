@@ -6,56 +6,21 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-// var ts = time.Now()
-
-// var (
-// 	id1 = uuid.New()
-// 	id2 = uuid.New()
-// 	id3 = uuid.New()
-
-// 	commid1 = uuid.New()
-// 	commid2 = uuid.New()
-
-// 	replid1 = uuid.New()
-// )
-
-// var psts = map[uuid.UUID]storage.Post{
-// 	id1: {
-// 		Id: id1,
-// 		InPost: storage.InPost{
-// 			Content: "post1",
-// 		},
-// 		Comments: map[uuid.UUID]storage.Comment{
-// 			commid1: {
-// 				Id: commid1,
-// 				InComment: storage.InComment{
-// 					Content: "comment1",
-// 				},
-// 				Replies: map[uuid.UUID]storage.Comment{
-// 					replid1: {
-// 						Id: replid1,
-// 						InComment: storage.InComment{
-// 							Content: "comment2",
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	},
-// 	id2: {
-// 		Id: id2,
-// 		Comments: map[uuid.UUID]storage.Comment{
-// 			commid2: {
-// 				Id: commid2,
-// 			},
-// 		},
-// 	},
-// 	id3: {
-// 		Id: id3,
-// 	},
-// }
-
 func (gh *gqlHandler) initSchema() error {
+	var inCommentInput = graphql.NewInputObject(
+		graphql.InputObjectConfig{
+			Name: "InCommentInput",
+			Fields: graphql.InputObjectConfigFieldMap{
+				"user_id": &graphql.InputObjectFieldConfig{
+					Type: graphql.NewNonNull(graphql.ID),
+				},
+				"content": &graphql.InputObjectFieldConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+		},
+	)
+
 	var inCommentType = graphql.NewObject(
 		graphql.ObjectConfig{
 			Name: "InComment",
@@ -118,6 +83,23 @@ func (gh *gqlHandler) initSchema() error {
 				}
 
 				return repls, nil
+			},
+		},
+	)
+
+	var inPostInput = graphql.NewInputObject(
+		graphql.InputObjectConfig{
+			Name: "InPostInput",
+			Fields: graphql.InputObjectConfigFieldMap{
+				"user_id": &graphql.InputObjectFieldConfig{
+					Type: graphql.NewNonNull(graphql.ID),
+				},
+				"content": &graphql.InputObjectFieldConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+				"is_mute": &graphql.InputObjectFieldConfig{
+					Type: graphql.NewNonNull(graphql.Boolean),
+				},
 			},
 		},
 	)
@@ -195,16 +177,16 @@ func (gh *gqlHandler) initSchema() error {
 		graphql.EnumConfig{
 			Name: "SortEnum",
 			Values: graphql.EnumValueConfigMap{
-				"newest": &graphql.EnumValueConfig{
+				"NEWEST": &graphql.EnumValueConfig{
 					Value: "newest",
 				},
-				"oldest": &graphql.EnumValueConfig{
+				"OLDEST": &graphql.EnumValueConfig{
 					Value: "oldest",
 				},
-				"upvoted": &graphql.EnumValueConfig{
+				"UPVOTED": &graphql.EnumValueConfig{
 					Value: "upvoted",
 				},
-				"downvoted": &graphql.EnumValueConfig{
+				"DOWNVOTED": &graphql.EnumValueConfig{
 					Value: "downvoted",
 				},
 			},
@@ -224,19 +206,12 @@ func (gh *gqlHandler) initSchema() error {
 						},
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						idArg, _ := p.Args["id"]
-
-						idStr, ok := idArg.(string)
-						if !ok {
-							return nil, ErrCantConvertToUUID
-						}
-
-						id, err := uuid.Parse(idStr)
+						id, err := idFromArg(p.Args["id"])
 						if err != nil {
-							return nil, ErrCantConvertToUUID
+							return nil, err
 						}
 
-						return gh.svc.GetPost(p.Context, id)
+						return gh.svc.GetPost(p.Context, *id)
 					},
 				},
 				"posts": &graphql.Field{
@@ -245,7 +220,7 @@ func (gh *gqlHandler) initSchema() error {
 							OfType: postType,
 						},
 					),
-					Description: "get all posts",
+					Description: "get sorted + paginated posts",
 					Args: graphql.FieldConfigArgument{
 						"limit": &graphql.ArgumentConfig{
 							Type: graphql.Int,
@@ -254,7 +229,7 @@ func (gh *gqlHandler) initSchema() error {
 							Type: graphql.Int,
 						},
 						"sort_by": &graphql.ArgumentConfig{
-							Type: sortEnum,
+							Type: graphql.NewNonNull(sortEnum),
 						},
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -268,15 +243,146 @@ func (gh *gqlHandler) initSchema() error {
 
 						limitArg, ok := p.Args["limit"]
 						if ok {
-							limit = limitArg.(*int)
+							v, _ := limitArg.(int)
+							limit = &v
 						}
 
 						offsetArg, ok := p.Args["offset"]
-						if !ok {
-							offset = offsetArg.(*int)
+						if ok {
+							v, _ := offsetArg.(int)
+							offset = &v
 						}
 
-						return gh.svc.ListPosts(p.Context, limit, offset, sortBy)
+						return gh.svc.GetPosts(p.Context, limit, offset, sortBy)
+					},
+				},
+			},
+		},
+	)
+
+	var rootMutation = graphql.NewObject(
+		graphql.ObjectConfig{
+			Name: "Mutation",
+			Fields: graphql.Fields{
+				"insertPost": &graphql.Field{
+					Type: graphql.NewNonNull(postType),
+					Args: graphql.FieldConfigArgument{
+						"in_post": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(inPostInput),
+						},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						in, err := inPostFromArg(p.Args["in_post"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.InsertPost(p.Context, *in)
+					},
+				},
+				"deletePost": &graphql.Field{
+					Type: graphql.ID,
+					Args: graphql.FieldConfigArgument{
+						"id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.ID),
+						},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						id, err := idFromArg(p.Args["id"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.DeletePost(p.Context, *id)
+					},
+				},
+				"updatePost": &graphql.Field{
+					Type: graphql.NewNonNull(postType),
+					Args: graphql.FieldConfigArgument{
+						"post_id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.ID),
+						},
+						"in_post": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(inPostInput),
+						},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						id, err := idFromArg(p.Args["post_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						in, err := inPostFromArg(p.Args["in_post"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.UpdatePost(p.Context, *id, *in)
+					},
+				},
+				"insertComment": &graphql.Field{
+					Type: graphql.NewNonNull(commentType),
+					Args: graphql.FieldConfigArgument{
+						"post_id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.ID),
+						},
+						"parent_id": &graphql.ArgumentConfig{
+							Type: graphql.ID,
+						},
+						"in_comment": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(inCommentInput),
+						},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						postId, err := idFromArg(p.Args["post_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						var (
+							parentId *uuid.UUID
+						)
+
+						parentIdArg, ok := p.Args["parent_id"]
+						if ok {
+							p, err := idFromArg(parentIdArg)
+							if err != nil {
+								return nil, err
+							}
+
+							parentId = p
+						}
+
+						in, err := inCommentFromArg(p.Args["in_comment"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.InsertComment(p.Context, *postId, parentId, *in)
+					},
+				},
+				"deleteComment": &graphql.Field{
+					Type: graphql.ID,
+					Args: graphql.FieldConfigArgument{
+						"post_id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.ID),
+						},
+						"comm_id": &graphql.ArgumentConfig{
+							Type: graphql.NewNonNull(graphql.ID),
+						},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						postId, err := idFromArg(p.Args["post_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						commId, err := idFromArg(p.Args["comm_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.DeleteComment(p.Context, *postId, *commId)
 					},
 				},
 			},
@@ -284,7 +390,8 @@ func (gh *gqlHandler) initSchema() error {
 	)
 
 	var schemaConfig = graphql.SchemaConfig{
-		Query: rootQuery,
+		Query:    rootQuery,
+		Mutation: rootMutation,
 	}
 
 	schema, err := graphql.NewSchema(schemaConfig)

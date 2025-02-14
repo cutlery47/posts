@@ -133,7 +133,7 @@ func TestStorageDeletePost(t *testing.T) {
 		t.Fatalf("error: %v", err)
 	}
 
-	err = store.DeletePost(ctx, post.Id)
+	_, err = store.DeletePost(ctx, post.Id)
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestStorageDeleteNonexistantPost(t *testing.T) {
 		t.Fatalf("error: %v", err)
 	}
 
-	err = store.DeletePost(ctx, uuid.New())
+	_, err = store.DeletePost(ctx, uuid.New())
 	if !errors.Is(err, storage.ErrPostNotFound) {
 		t.Fatalf("error: %v", err)
 	}
@@ -174,12 +174,12 @@ func TestStorageDeleteDeletedPost(t *testing.T) {
 		t.Fatalf("error: %v", err)
 	}
 
-	err = store.DeletePost(ctx, post.Id)
+	_, err = store.DeletePost(ctx, post.Id)
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
 
-	err = store.DeletePost(ctx, post.Id)
+	_, err = store.DeletePost(ctx, post.Id)
 	if !errors.Is(err, storage.ErrPostIsDeleted) {
 		t.Fatalf("managed to delete deleted post: %v", err)
 	}
@@ -245,7 +245,7 @@ func TestStorageUpdateDeletedPost(t *testing.T) {
 		t.Fatalf("error: %v", err)
 	}
 
-	err = store.DeletePost(ctx, post.Id)
+	_, err = store.DeletePost(ctx, post.Id)
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
@@ -380,7 +380,7 @@ func TestStorageDeleteComment(t *testing.T) {
 		t.Fatalf("error: %v", err)
 	}
 
-	err = store.DeleteComment(ctx, post.Id, comm.Id)
+	_, err = store.DeleteComment(ctx, post.Id, comm.Id)
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
@@ -406,7 +406,7 @@ func TestStorageDeleteReply(t *testing.T) {
 		t.Fatalf("error: %v", err)
 	}
 
-	err = store.DeleteComment(ctx, post.Id, repl.Id)
+	_, err = store.DeleteComment(ctx, post.Id, repl.Id)
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
@@ -427,7 +427,7 @@ func TestStorageDeleteCommentInNonexistantPost(t *testing.T) {
 		t.Fatalf("error: %v", err)
 	}
 
-	err = store.DeleteComment(ctx, uuid.New(), comm.Id)
+	_, err = store.DeleteComment(ctx, uuid.New(), comm.Id)
 	if !errors.Is(err, storage.ErrPostNotFound) {
 		t.Fatalf("error: %v", err)
 	}

@@ -49,7 +49,7 @@ func (gh *gqlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryStirng, ok := queryField.(string)
+	queryString, ok := queryField.(string)
 	if !ok {
 		errh.Handle(errors.New("query can't be converted to string"), w)
 		return
@@ -58,7 +58,7 @@ func (gh *gqlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	res := graphql.Do(graphql.Params{
 		Context:       r.Context(),
 		Schema:        gh.schema,
-		RequestString: queryStirng,
+		RequestString: queryString,
 	})
 
 	json.NewEncoder(w).Encode(res)
