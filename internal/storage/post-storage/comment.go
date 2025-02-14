@@ -17,7 +17,7 @@ type InComment struct {
 // output-bound comment
 // not concurrent-safe by itself!
 type Comment struct {
-	InComment `json:"comment"`
+	InComment `json:"in_comment"`
 
 	Id uuid.UUID `json:"id"`
 

@@ -8,6 +8,7 @@ import (
 	"github.com/cutlery47/posts/config"
 	v1 "github.com/cutlery47/posts/internal/handlers/http/v1"
 	gql "github.com/cutlery47/posts/internal/handlers/http/v1/graphql"
+	"github.com/cutlery47/posts/internal/service"
 	post "github.com/cutlery47/posts/internal/storage/post-storage"
 	"github.com/cutlery47/posts/internal/storage/post-storage/mem"
 	pgpost "github.com/cutlery47/posts/internal/storage/post-storage/postgres"
@@ -34,9 +35,16 @@ func Run(conf config.App) error {
 		return fmt.Errorf("[SETUP ERROR] error when setting up user storage: %v", err)
 	}
 
+	log.Println("[SETUP] setting up service...")
+
+	svc, err := service.New(ps, us)
+	if err != nil {
+		return fmt.Errorf("[SETUP ERROR] error when setting up service: %v", err)
+	}
+
 	log.Println("[SETUP] setting up graphql handler...")
 
-	h, err := gql.New(ps, us)
+	h, err := gql.New(svc)
 	if err != nil {
 		return fmt.Errorf("[SETUP ERROR] error when seting up graphql handler: %v", err)
 	}

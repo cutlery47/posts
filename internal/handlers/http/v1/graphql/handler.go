@@ -5,30 +5,27 @@ import (
 	"errors"
 	"net/http"
 
-	post "github.com/cutlery47/posts/internal/storage/post-storage"
-	user "github.com/cutlery47/posts/internal/storage/user-storage"
+	"github.com/cutlery47/posts/internal/service"
 	errh "github.com/cutlery47/posts/pkg/errhandle"
 	"github.com/graphql-go/graphql"
 )
 
 type gqlHandler struct {
-	us user.Storage
-	ps post.Storage
+	svc *service.Service
 
 	schema graphql.Schema
 }
 
-func New(ps post.Storage, us user.Storage) (*gqlHandler, error) {
-	schema, err := graphql.NewSchema(schemaConfig)
-	if err != nil {
+func New(svc *service.Service) (*gqlHandler, error) {
+	gh := &gqlHandler{
+		svc: svc,
+	}
+
+	if err := gh.initSchema(); err != nil {
 		return nil, err
 	}
 
-	return &gqlHandler{
-		us:     us,
-		ps:     ps,
-		schema: schema,
-	}, nil
+	return gh, nil
 }
 
 func (gh *gqlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
