@@ -155,6 +155,27 @@ func (ms *memStorage) UpdatePost(ctx context.Context, id uuid.UUID, in storage.I
 	return &post, nil
 }
 
+func (ms *memStorage) GetComment(ctx context.Context, postId, commentId uuid.UUID) (*storage.Comment, error) {
+	if err := ctxDone(ctx); err != nil {
+		return nil, err
+	}
+
+	ms.mu.RLock()
+	defer ms.mu.RUnlock()
+
+	post, ok := ms.posts[postId]
+	if !ok {
+		return nil, storage.ErrPostNotFound
+	}
+
+	comm, ok := getComment(post, commentId)
+	if !ok {
+		return nil, storage.ErrCommNotFound
+	}
+
+	return comm, nil
+}
+
 func (ms *memStorage) InsertComment(ctx context.Context, postId uuid.UUID, parentId *uuid.UUID, in storage.InComment) (*storage.Comment, error) {
 	if err := ctxDone(ctx); err != nil {
 		return nil, err

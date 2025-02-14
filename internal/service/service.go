@@ -30,11 +30,12 @@ func New(ps post.Storage, us user.Storage) (*Service, error) {
 	}, nil
 }
 
-func (s *Service) ValidateSession(ctx context.Context, seshId uuid.UUID) bool {
-	if _, err := s.us.GetSession(ctx, seshId); err != nil && errors.Is(err, user.ErrSessionNotFound) {
-		return false
+func (s *Service) GetSessionUser(ctx context.Context, seshId uuid.UUID) (uuid.UUID, error) {
+	sesh, err := s.us.GetSession(ctx, seshId)
+	if err != nil && errors.Is(err, user.ErrSessionNotFound) {
+		return uuid.UUID{}, err
 	}
-	return true
+	return sesh.UserId, nil
 }
 
 func (s *Service) Register(ctx context.Context, in user.InUser) (*user.User, error) {
@@ -75,36 +76,78 @@ func (s *Service) GetPosts(ctx context.Context, limit *int, offset *int, sortBy 
 	return posts, nil
 }
 
-func (s *Service) InsertPost(ctx context.Context, in post.InPost, seshId uuid.UUID) (*post.Post, error) {
+func (s *Service) InsertPost(ctx context.Context, in post.InPost, userId uuid.UUID) (*post.Post, error) {
+	if in.UserId != userId {
+		return nil, ErrWrongUserId
+	}
+
 	return s.ps.InsertPost(ctx, in)
 }
 
-func (s *Service) DeletePost(ctx context.Context, id uuid.UUID, seshId uuid.UUID) (*uuid.UUID, error) {
-	// pass userId somehow + validation
+func (s *Service) DeletePost(ctx context.Context, id uuid.UUID, userId uuid.UUID) (*uuid.UUID, error) {
+	post, err := s.ps.GetPost(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if post.UserId != userId {
+		return nil, ErrAccessDenied
+	}
 
 	return s.ps.DeletePost(ctx, id)
 }
 
-func (s *Service) UpdatePost(ctx context.Context, id, seshId uuid.UUID, in post.InPost) (*post.Post, error) {
-	// validation
+func (s *Service) UpdatePost(ctx context.Context, id, userId uuid.UUID, in post.InPost) (*post.Post, error) {
+	post, err := s.ps.GetPost(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if post.UserId != userId {
+		return nil, ErrAccessDenied
+	}
+
+	if in.UserId != userId {
+		return nil, ErrWrongUserId
+	}
 
 	return s.ps.UpdatePost(ctx, id, in)
 }
 
-func (s *Service) InsertComment(ctx context.Context, postId, seshID uuid.UUID, parentId *uuid.UUID, in post.InComment) (*post.Comment, error) {
-	// vld
+func (s *Service) InsertComment(ctx context.Context, postId, userId uuid.UUID, parentId *uuid.UUID, in post.InComment) (*post.Comment, error) {
+	if in.UserId != userId {
+		return nil, ErrWrongUserId
+	}
 
 	return s.ps.InsertComment(ctx, postId, parentId, in)
 }
 
-func (s *Service) DeleteComment(ctx context.Context, postId, commentId, seshId uuid.UUID) (*uuid.UUID, error) {
-	// vld
+func (s *Service) DeleteComment(ctx context.Context, postId, commentId, userId uuid.UUID) (*uuid.UUID, error) {
+	comm, err := s.ps.GetComment(ctx, postId, commentId)
+	if err != nil {
+		return nil, err
+	}
+
+	if comm.UserId != userId {
+		return nil, ErrAccessDenied
+	}
 
 	return s.ps.DeleteComment(ctx, postId, commentId)
 }
 
-func (s *Service) UpdateComment(ctx context.Context, postId, commentId, seshId uuid.UUID, in post.InComment) (*post.Comment, error) {
-	// vld
+func (s *Service) UpdateComment(ctx context.Context, postId, commentId, userId uuid.UUID, in post.InComment) (*post.Comment, error) {
+	comm, err := s.ps.GetComment(ctx, postId, commentId)
+	if err != nil {
+		return nil, err
+	}
+
+	if userId != comm.UserId {
+		return nil, ErrAccessDenied
+	}
+
+	if userId != in.UserId {
+		return nil, ErrWrongUserId
+	}
 
 	return s.ps.UpdateComment(ctx, postId, commentId, in)
 }

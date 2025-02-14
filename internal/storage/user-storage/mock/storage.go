@@ -81,7 +81,10 @@ func (ms *mockStorage) Login(ctx context.Context, in storage.InUser) (*storage.S
 
 	// imagine some password validation here, etc...
 
-	return newSession(user.Id, time.Now().Add(ms.conf.SessionDuration)), nil
+	sesh := newSession(user.Id, time.Now().Add(ms.conf.SessionDuration))
+	ms.sessions[sesh.Id] = *sesh
+
+	return sesh, nil
 }
 
 func (ms *mockStorage) Logout(ctx context.Context, sesh storage.Session) error {

@@ -2,7 +2,6 @@ package gql
 
 import (
 	storage "github.com/cutlery47/posts/internal/storage/post-storage"
-	"github.com/google/uuid"
 	"github.com/graphql-go/graphql"
 )
 
@@ -205,14 +204,7 @@ func (gh *gqlHandler) initSchema() error {
 							Type: graphql.NewNonNull(graphql.ID),
 						},
 					},
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						id, err := idFromArg(p.Args["id"])
-						if err != nil {
-							return nil, err
-						}
-
-						return gh.svc.GetPost(p.Context, *id)
-					},
+					Resolve: gh.resolveQueryPost,
 				},
 				"posts": &graphql.Field{
 					Type: graphql.NewNonNull(
@@ -232,29 +224,7 @@ func (gh *gqlHandler) initSchema() error {
 							Type: graphql.NewNonNull(sortEnum),
 						},
 					},
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						var (
-							limit  *int
-							offset *int
-							sortBy string
-						)
-
-						sortBy = p.Args["sort_by"].(string)
-
-						limitArg, ok := p.Args["limit"]
-						if ok {
-							v, _ := limitArg.(int)
-							limit = &v
-						}
-
-						offsetArg, ok := p.Args["offset"]
-						if ok {
-							v, _ := offsetArg.(int)
-							offset = &v
-						}
-
-						return gh.svc.GetPosts(p.Context, limit, offset, sortBy)
-					},
+					Resolve: gh.resolveQueryPosts,
 				},
 			},
 		},
@@ -276,19 +246,7 @@ func (gh *gqlHandler) initSchema() error {
 						},
 						"sesh_id": seshToken,
 					},
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						in, err := inPostFromArg(p.Args["in_post"])
-						if err != nil {
-							return nil, err
-						}
-
-						seshId, err := idFromArg(p.Args["sesh_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						return gh.svc.InsertPost(p.Context, *in, *seshId)
-					},
+					Resolve: gh.resolveMutationInsertPost,
 				},
 				"deletePost": &graphql.Field{
 					Type: graphql.ID,
@@ -298,19 +256,7 @@ func (gh *gqlHandler) initSchema() error {
 						},
 						"sesh_id": seshToken,
 					},
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						id, err := idFromArg(p.Args["id"])
-						if err != nil {
-							return nil, err
-						}
-
-						seshId, err := idFromArg(p.Args["sesh_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						return gh.svc.DeletePost(p.Context, *id, *seshId)
-					},
+					Resolve: gh.resolveMutationDeletePost,
 				},
 				"updatePost": &graphql.Field{
 					Type: graphql.NewNonNull(postType),
@@ -323,24 +269,7 @@ func (gh *gqlHandler) initSchema() error {
 						},
 						"sesh_id": seshToken,
 					},
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						id, err := idFromArg(p.Args["post_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						in, err := inPostFromArg(p.Args["in_post"])
-						if err != nil {
-							return nil, err
-						}
-
-						seshId, err := idFromArg(p.Args["sesh_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						return gh.svc.UpdatePost(p.Context, *id, *seshId, *in)
-					},
+					Resolve: gh.resolveMutationUpdatePost,
 				},
 				"insertComment": &graphql.Field{
 					Type: graphql.NewNonNull(commentType),
@@ -356,38 +285,7 @@ func (gh *gqlHandler) initSchema() error {
 						},
 						"sesh_id": seshToken,
 					},
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						postId, err := idFromArg(p.Args["post_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						var (
-							parentId *uuid.UUID
-						)
-
-						parentIdArg, ok := p.Args["parent_id"]
-						if ok {
-							p, err := idFromArg(parentIdArg)
-							if err != nil {
-								return nil, err
-							}
-
-							parentId = p
-						}
-
-						in, err := inCommentFromArg(p.Args["in_comment"])
-						if err != nil {
-							return nil, err
-						}
-
-						seshId, err := idFromArg(p.Args["sesh_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						return gh.svc.InsertComment(p.Context, *postId, *seshId, parentId, *in)
-					},
+					Resolve: gh.resolveMutationInsertComment,
 				},
 				"deleteComment": &graphql.Field{
 					Type: graphql.ID,
@@ -400,24 +298,7 @@ func (gh *gqlHandler) initSchema() error {
 						},
 						"sesh_id": seshToken,
 					},
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						postId, err := idFromArg(p.Args["post_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						commId, err := idFromArg(p.Args["comm_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						seshId, err := idFromArg(p.Args["sesh_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						return gh.svc.DeleteComment(p.Context, *postId, *commId, *seshId)
-					},
+					Resolve: gh.resolveMutationDeleteComment,
 				},
 				"updateComment": &graphql.Field{
 					Type: commentType,
@@ -433,29 +314,7 @@ func (gh *gqlHandler) initSchema() error {
 						},
 						"sesh_id": seshToken,
 					},
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						postId, err := idFromArg(p.Args["post_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						commId, err := idFromArg(p.Args["comm_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						comm, err := inCommentFromArg(p.Args["in_comm"])
-						if err != nil {
-							return nil, err
-						}
-
-						seshId, err := idFromArg(p.Args["sesh_id"])
-						if err != nil {
-							return nil, err
-						}
-
-						return gh.svc.UpdateComment(p.Context, *postId, *commId, *seshId, *comm)
-					},
+					Resolve: gh.resolveMutationUpdateComment,
 				},
 			},
 		},
@@ -470,7 +329,6 @@ func (gh *gqlHandler) initSchema() error {
 	if err != nil {
 		return err
 	}
-
 	gh.schema = schema
 
 	return nil
