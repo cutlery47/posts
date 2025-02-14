@@ -7,7 +7,6 @@ import (
 
 	"github.com/cutlery47/posts/config"
 	v1 "github.com/cutlery47/posts/internal/handlers/http/v1"
-	gql "github.com/cutlery47/posts/internal/handlers/http/v1/graphql"
 	"github.com/cutlery47/posts/internal/service"
 	post "github.com/cutlery47/posts/internal/storage/post-storage"
 	"github.com/cutlery47/posts/internal/storage/post-storage/mem"
@@ -44,14 +43,14 @@ func Run(conf config.App) error {
 
 	log.Println("[SETUP] setting up graphql handler...")
 
-	h, err := gql.New(svc)
+	h, err := v1.New(conf.Handler, svc)
 	if err != nil {
-		return fmt.Errorf("[SETUP ERROR] error when seting up graphql handler: %v", err)
+		return fmt.Errorf("[SETUP ERROR] error when seting up handlers: %v", err)
 	}
 
 	log.Println("[SETUP] setting up http server...")
 
-	srv := httpserver.New(conf.HTTPServer, v1.New(h))
+	srv := httpserver.New(conf.HTTPServer, h)
 
 	return srv.Run(errChan)
 }
@@ -63,7 +62,6 @@ func getPostStorage(conf config.PostStorage, errChan chan<- error) (post.Storage
 		if err != nil {
 			return nil, err
 		}
-
 		return mem.NewStorage(conf, fd, fd, errChan)
 	case "pg":
 		return pgpost.NewStorage()

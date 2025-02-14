@@ -260,6 +260,10 @@ func (gh *gqlHandler) initSchema() error {
 		},
 	)
 
+	var seshToken = &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphql.ID),
+	}
+
 	var rootMutation = graphql.NewObject(
 		graphql.ObjectConfig{
 			Name: "Mutation",
@@ -270,6 +274,7 @@ func (gh *gqlHandler) initSchema() error {
 						"in_post": &graphql.ArgumentConfig{
 							Type: graphql.NewNonNull(inPostInput),
 						},
+						"sesh_id": seshToken,
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 						in, err := inPostFromArg(p.Args["in_post"])
@@ -277,7 +282,12 @@ func (gh *gqlHandler) initSchema() error {
 							return nil, err
 						}
 
-						return gh.svc.InsertPost(p.Context, *in)
+						seshId, err := idFromArg(p.Args["sesh_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.InsertPost(p.Context, *in, *seshId)
 					},
 				},
 				"deletePost": &graphql.Field{
@@ -286,6 +296,7 @@ func (gh *gqlHandler) initSchema() error {
 						"id": &graphql.ArgumentConfig{
 							Type: graphql.NewNonNull(graphql.ID),
 						},
+						"sesh_id": seshToken,
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 						id, err := idFromArg(p.Args["id"])
@@ -293,7 +304,12 @@ func (gh *gqlHandler) initSchema() error {
 							return nil, err
 						}
 
-						return gh.svc.DeletePost(p.Context, *id)
+						seshId, err := idFromArg(p.Args["sesh_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.DeletePost(p.Context, *id, *seshId)
 					},
 				},
 				"updatePost": &graphql.Field{
@@ -305,6 +321,7 @@ func (gh *gqlHandler) initSchema() error {
 						"in_post": &graphql.ArgumentConfig{
 							Type: graphql.NewNonNull(inPostInput),
 						},
+						"sesh_id": seshToken,
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 						id, err := idFromArg(p.Args["post_id"])
@@ -317,7 +334,12 @@ func (gh *gqlHandler) initSchema() error {
 							return nil, err
 						}
 
-						return gh.svc.UpdatePost(p.Context, *id, *in)
+						seshId, err := idFromArg(p.Args["sesh_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.UpdatePost(p.Context, *id, *seshId, *in)
 					},
 				},
 				"insertComment": &graphql.Field{
@@ -332,6 +354,7 @@ func (gh *gqlHandler) initSchema() error {
 						"in_comment": &graphql.ArgumentConfig{
 							Type: graphql.NewNonNull(inCommentInput),
 						},
+						"sesh_id": seshToken,
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 						postId, err := idFromArg(p.Args["post_id"])
@@ -358,7 +381,12 @@ func (gh *gqlHandler) initSchema() error {
 							return nil, err
 						}
 
-						return gh.svc.InsertComment(p.Context, *postId, parentId, *in)
+						seshId, err := idFromArg(p.Args["sesh_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.InsertComment(p.Context, *postId, *seshId, parentId, *in)
 					},
 				},
 				"deleteComment": &graphql.Field{
@@ -370,6 +398,7 @@ func (gh *gqlHandler) initSchema() error {
 						"comm_id": &graphql.ArgumentConfig{
 							Type: graphql.NewNonNull(graphql.ID),
 						},
+						"sesh_id": seshToken,
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 						postId, err := idFromArg(p.Args["post_id"])
@@ -382,7 +411,12 @@ func (gh *gqlHandler) initSchema() error {
 							return nil, err
 						}
 
-						return gh.svc.DeleteComment(p.Context, *postId, *commId)
+						seshId, err := idFromArg(p.Args["sesh_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.DeleteComment(p.Context, *postId, *commId, *seshId)
 					},
 				},
 				"updateComment": &graphql.Field{
@@ -397,6 +431,7 @@ func (gh *gqlHandler) initSchema() error {
 						"in_comm": &graphql.ArgumentConfig{
 							Type: inCommentInput,
 						},
+						"sesh_id": seshToken,
 					},
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 						postId, err := idFromArg(p.Args["post_id"])
@@ -414,7 +449,12 @@ func (gh *gqlHandler) initSchema() error {
 							return nil, err
 						}
 
-						return gh.svc.UpdateComment(p.Context, *postId, *commId, *comm)
+						seshId, err := idFromArg(p.Args["sesh_id"])
+						if err != nil {
+							return nil, err
+						}
+
+						return gh.svc.UpdateComment(p.Context, *postId, *commId, *seshId, *comm)
 					},
 				},
 			},

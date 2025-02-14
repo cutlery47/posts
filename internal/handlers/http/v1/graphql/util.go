@@ -2,15 +2,20 @@ package gql
 
 import (
 	"encoding/json"
+	"errors"
 
 	storage "github.com/cutlery47/posts/internal/storage/post-storage"
 	"github.com/google/uuid"
 )
 
+var (
+	ErrBadArgType = errors.New("bad argument type")
+)
+
 func idFromArg(arg any) (*uuid.UUID, error) {
 	idStr, ok := arg.(string)
 	if !ok {
-		return nil, ErrCantConvertToUUID
+		return nil, ErrBadArgType
 	}
 
 	v, err := uuid.Parse(idStr)

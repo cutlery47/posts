@@ -26,8 +26,8 @@ func toUser(in storage.InUser) storage.User {
 	}
 }
 
-func newSession(userId uuid.UUID, expiresAt time.Time) storage.Session {
-	return storage.Session{
+func newSession(userId uuid.UUID, expiresAt time.Time) *storage.Session {
+	return &storage.Session{
 		Id:        uuid.New(),
 		UserId:    userId,
 		CreatedAt: time.Now(),

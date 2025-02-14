@@ -30,6 +30,25 @@ func New(ps post.Storage, us user.Storage) (*Service, error) {
 	}, nil
 }
 
+func (s *Service) ValidateSession(ctx context.Context, seshId uuid.UUID) bool {
+	if _, err := s.us.GetSession(ctx, seshId); err != nil && errors.Is(err, user.ErrSessionNotFound) {
+		return false
+	}
+	return true
+}
+
+func (s *Service) Register(ctx context.Context, in user.InUser) (*user.User, error) {
+	return s.us.Register(ctx, in)
+}
+
+func (s *Service) Login(ctx context.Context, in user.InUser) (*user.Session, error) {
+	return s.us.Login(ctx, in)
+}
+
+func (s *Service) Logout(ctx context.Context, sesh user.Session) error {
+	return s.us.Logout(ctx, sesh)
+}
+
 func (s *Service) GetPost(ctx context.Context, id uuid.UUID) (*post.Post, error) {
 	return s.ps.GetPost(ctx, id)
 }
@@ -56,35 +75,35 @@ func (s *Service) GetPosts(ctx context.Context, limit *int, offset *int, sortBy 
 	return posts, nil
 }
 
-func (s *Service) InsertPost(ctx context.Context, in post.InPost) (*post.Post, error) {
+func (s *Service) InsertPost(ctx context.Context, in post.InPost, seshId uuid.UUID) (*post.Post, error) {
 	return s.ps.InsertPost(ctx, in)
 }
 
-func (s *Service) DeletePost(ctx context.Context, id uuid.UUID) (*uuid.UUID, error) {
+func (s *Service) DeletePost(ctx context.Context, id uuid.UUID, seshId uuid.UUID) (*uuid.UUID, error) {
 	// pass userId somehow + validation
 
 	return s.ps.DeletePost(ctx, id)
 }
 
-func (s *Service) UpdatePost(ctx context.Context, id uuid.UUID, in post.InPost) (*post.Post, error) {
+func (s *Service) UpdatePost(ctx context.Context, id, seshId uuid.UUID, in post.InPost) (*post.Post, error) {
 	// validation
 
 	return s.ps.UpdatePost(ctx, id, in)
 }
 
-func (s *Service) InsertComment(ctx context.Context, postId uuid.UUID, parentId *uuid.UUID, in post.InComment) (*post.Comment, error) {
+func (s *Service) InsertComment(ctx context.Context, postId, seshID uuid.UUID, parentId *uuid.UUID, in post.InComment) (*post.Comment, error) {
 	// vld
 
 	return s.ps.InsertComment(ctx, postId, parentId, in)
 }
 
-func (s *Service) DeleteComment(ctx context.Context, postId, commentId uuid.UUID) (*uuid.UUID, error) {
+func (s *Service) DeleteComment(ctx context.Context, postId, commentId, seshId uuid.UUID) (*uuid.UUID, error) {
 	// vld
 
 	return s.ps.DeleteComment(ctx, postId, commentId)
 }
 
-func (s *Service) UpdateComment(ctx context.Context, postId, commentId uuid.UUID, in post.InComment) (*post.Comment, error) {
+func (s *Service) UpdateComment(ctx context.Context, postId, commentId, seshId uuid.UUID, in post.InComment) (*post.Comment, error) {
 	// vld
 
 	return s.ps.UpdateComment(ctx, postId, commentId, in)

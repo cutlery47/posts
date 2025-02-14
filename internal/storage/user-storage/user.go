@@ -7,15 +7,15 @@ import (
 )
 
 type InUser struct {
-	Role string
+	Name string `json:"name"` // unique
+	Role string `json:"role"`
 }
 
 type User struct {
-	InUser
+	InUser `json:"in_user"`
 
-	Id uuid.UUID
-
-	CreatedAt time.Time
+	Id        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 var (

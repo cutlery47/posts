@@ -1,7 +1,6 @@
 package mem
 
 import (
-	"log"
 	"time"
 
 	storage "github.com/cutlery47/posts/internal/storage/post-storage"
@@ -67,10 +66,6 @@ func updateReply(c storage.Comment, id uuid.UUID, in storage.InComment) (*storag
 	if len(c.Replies) == 0 {
 		return nil, storage.ErrCommNotFound
 	}
-
-	log.Println("===")
-	log.Println("id:", id)
-	log.Println("replies:", c.Replies)
 
 	// fast path
 	r, ok := c.Replies[id]

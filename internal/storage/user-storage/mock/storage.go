@@ -32,16 +32,22 @@ func (ms *mockStorage) Register(ctx context.Context, in storage.InUser) (*storag
 		return nil, err
 	}
 
-	if in.Role != storage.AdminRole || in.Role != storage.UserRole {
+	if in.Role != storage.AdminRole && in.Role != storage.UserRole {
 		return nil, storage.ErrRoleNotFound
 	}
 
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 
+	for _, v := range ms.users {
+		if v.Name == in.Name {
+			return nil, storage.ErrUserAlreadyExists
+		}
+	}
+
 	user := toUser(in)
-	if _, ok := ms.users[user.Id]; ok {
-		return nil, storage.ErrUserAlreadyExists
+	for _, ok := ms.users[user.Id]; ok; _, ok = ms.users[user.Id] {
+		user = toUser(in)
 	}
 
 	ms.users[user.Id] = user
@@ -49,7 +55,7 @@ func (ms *mockStorage) Register(ctx context.Context, in storage.InUser) (*storag
 	return &user, nil
 }
 
-func (ms *mockStorage) Login(ctx context.Context, user storage.User) (*storage.Session, error) {
+func (ms *mockStorage) Login(ctx context.Context, in storage.InUser) (*storage.Session, error) {
 	if err := ctxDone(ctx); err != nil {
 		return nil, err
 	}
@@ -57,25 +63,25 @@ func (ms *mockStorage) Login(ctx context.Context, user storage.User) (*storage.S
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 
-	// imagine some validation here...
-
 	var (
-		sesh *storage.Session
+		user *storage.User
 	)
 
-	for _, v := range ms.sessions {
-		if v.UserId == user.Id && v.ExpiresAt.Before(time.Now()) {
-			sesh = &v
+	// searching if user with provided name exists
+	for _, v := range ms.users {
+		if v.Name == in.Name {
+			user = &v
 			break
 		}
 	}
 
-	if sesh == nil {
-		s := newSession(user.Id, time.Now().Add(ms.conf.SessionDuration))
-		sesh = &s
+	if user == nil {
+		return nil, storage.ErrUserNotFound
 	}
 
-	return sesh, nil
+	// imagine some password validation here, etc...
+
+	return newSession(user.Id, time.Now().Add(ms.conf.SessionDuration)), nil
 }
 
 func (ms *mockStorage) Logout(ctx context.Context, sesh storage.Session) error {
@@ -93,4 +99,20 @@ func (ms *mockStorage) Logout(ctx context.Context, sesh storage.Session) error {
 	delete(ms.sessions, sesh.Id)
 
 	return nil
+}
+
+func (ms *mockStorage) GetSession(ctx context.Context, id uuid.UUID) (*storage.Session, error) {
+	if err := ctxDone(ctx); err != nil {
+		return nil, err
+	}
+
+	ms.mu.RLock()
+	defer ms.mu.RUnlock()
+
+	s, ok := ms.sessions[id]
+	if !ok {
+		return nil, storage.ErrSessionNotFound
+	}
+
+	return &s, nil
 }
