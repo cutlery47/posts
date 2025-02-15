@@ -13,6 +13,8 @@ func main() {
 		log.Fatalf("[SETUP ERROR] error when reading config: %v", err)
 	}
 
+	log.Printf("%+v\n", conf)
+
 	err = app.Run(*conf)
 	if err != nil {
 		log.Fatalf("[APPLICATION ERROR] error: %v", err)

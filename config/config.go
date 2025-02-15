@@ -41,13 +41,13 @@ type UserStorage struct {
 }
 
 type Postgres struct {
-	User       string        `env:"POSTGRES_USER"`
-	Pass       string        `env:"POSTGRES_PASSWORD"`
-	Host       string        `env:"POSTGRES_HOST"`
-	Port       string        `env:"POSTGRES_PORT"`
-	DB         string        `env:"POSTGRES_DB"`
-	Timeout    time.Duration `env:"POSTGRES_TIMEOUT"`
-	Migrations string        `env:"POSTGRES_MIGRATIONS"`
+	User       string        `env:"POSTGRES_USER" env-default:"postgres"`
+	Pass       string        `env:"POSTGRES_PASSWORD" env-default:"postgres"`
+	Host       string        `env:"POSTGRES_HOST" env-default:"localhost"`
+	Port       string        `env:"POSTGRES_PORT" env-default:"8000"`
+	DB         string        `env:"POSTGRES_DB" env-default:"posts"`
+	Timeout    time.Duration `env:"POSTGRES_TIMEOUT" env-default:"5s"`
+	Migrations string        `env:"POSTGRES_MIGRATIONS" env-default:"./migrations"`
 }
 
 type HTTPServer struct {
